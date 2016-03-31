@@ -10,8 +10,13 @@
 
     ```elixir
     def deps do
-      [{:ueberauth_spotify, "~> 0.0.1"}]
+      [{:ueberauth_spotify, git: "https://github.com/markusherzog/ueberauth_spotify.git"}]
     end
+    ```
+
+1. Fetch the dependencies
+    ```elixir
+    mix deps.get
     ```
 
 1. Add the strategy to your applications:
@@ -22,10 +27,8 @@
     end
     ```
 
-1. Fetch the dependencies
-    ```elixir
-    mix deps.get
-    ```
+
+
 1. Add Spotify to your Überauth configuration:
 
     ```elixir
