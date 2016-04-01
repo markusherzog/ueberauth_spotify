@@ -1,4 +1,4 @@
-defmodule UeberauthGoogle.Mixfile do
+defmodule UeberauthSpotify.Mixfile do
   use Mix.Project
 
   def project do
