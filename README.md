@@ -19,7 +19,7 @@
     mix deps.get
     ```
 
-1. Add the strategy to your applications:
+1. Add the strategy to your applications in `mix.exs`::
 
     ```elixir
     def application do
@@ -27,9 +27,7 @@
     end
     ```
 
-
-
-1. Add Spotify to your Überauth configuration:
+1. Add Spotify to your Überauth configuration in `config/config.exs`::
 
     ```elixir
     config :ueberauth, Ueberauth,
@@ -38,7 +36,7 @@
       ]
     ```
 
-1.  Update your provider configuration:
+1.  Update your provider configuration in `config/[dev|test|prod].exs`:
 
     ```elixir
     config :ueberauth, Ueberauth.Strategy.Spotify.OAuth,

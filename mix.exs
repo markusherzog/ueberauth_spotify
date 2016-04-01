@@ -1,19 +1,16 @@
 defmodule UeberauthGoogle.Mixfile do
   use Mix.Project
 
-  @version "0.0.1"
-  @url "https://github.com/markusherzog/ueberauth_spotify"
-
   def project do
     [app: :ueberauth_spotify,
-     version: @version,
+     version: "0.0.1",
      name: "Ueberauth Spotify Strategy",
      package: package,
      elixir: "~> 1.1",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     source_url: @url,
-     homepage_url: @url,
+     source_url: "https://github.com/markusherzog/ueberauth_spotify",
+     homepage_url: "https://github.com/markusherzog/ueberauth_spotify",
      description: description,
      deps: deps,
      docs: docs]
@@ -43,9 +40,9 @@ defmodule UeberauthGoogle.Mixfile do
   end
 
   defp package do
-    [files: ["lib", "mix.exs", "README.md", "LICENSE"],
+    [files: ["lib", "mix.exs", "README.md", "LICENSE", ".gitignore"],
       maintainers: ["Markus Herzog"],
       licenses: ["MIT"],
-      links: %{"GitHub": @url}]
+      links: %{"GitHub": "https://github.com/markusherzog/ueberauth_spotify"}]
   end
 end

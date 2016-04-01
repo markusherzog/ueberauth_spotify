@@ -32,6 +32,13 @@ defmodule Ueberauth.Strategy.Spotify do
     end
   end
 
+  @doc """
+  Handles the error callback from Spotify
+  """
+  def handle_callback!(%Plug.Conn{ params: %{ "error" => error } } = conn) do
+    set_errors!(conn, [error("error", error)])
+  end
+
   defp fetch_user(conn, token) do
     case OAuth2.AccessToken.get(token, "/me") do
       { :ok, %OAuth2.Response{status_code: 404, body: _body}} ->
