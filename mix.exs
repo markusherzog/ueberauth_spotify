@@ -3,7 +3,7 @@ defmodule UeberauthSpotify.Mixfile do
 
   def project do
     [app: :ueberauth_spotify,
-     version: "0.0.1",
+     version: "0.0.2",
      name: "Ueberauth Spotify Strategy",
      package: package,
      elixir: "~> 1.1",

@@ -3,7 +3,9 @@ defmodule Ueberauth.Strategy.Spotify do
   Spotify Strategy for Überauth.
   """
 
-  use Ueberauth.Strategy, uid_field: :uid, default_scope: "user-read-email"
+  use Ueberauth.Strategy, uid_field: :uid,
+                          default_scope: "user-read-email"
+
   alias Ueberauth.Auth.Info
 
   @doc """
@@ -59,10 +61,12 @@ defmodule Ueberauth.Strategy.Spotify do
       name: user["display_name"],
       nickname: user["id"],
       email: user["email"],
+      image: hd(user["images"])["url"]
     }
   end
 
   defp option(conn, key) do
     Dict.get(options(conn), key, Dict.get(default_options, key))
   end
+
 end
