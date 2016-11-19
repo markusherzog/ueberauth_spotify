@@ -48,7 +48,9 @@ defmodule Ueberauth.Strategy.Spotify do
       { :ok, %OAuth2.Response{status_code: 401, body: _body}} ->
         set_errors!(conn, [error("token", "unauthorized")])
       { :ok, %OAuth2.Response{status_code: status_code, body: user} } when status_code in 200..399 ->
-        put_private(conn, :spotify_user, user)
+        conn
+        |> put_private(:spotify_user, user)
+        |> put_private(:token, token)
       { :error, %OAuth2.Error{reason: reason} } ->
         set_errors!(conn, [error("OAuth2", reason)])
     end
