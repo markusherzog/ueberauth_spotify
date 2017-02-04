@@ -7,6 +7,8 @@ defmodule Ueberauth.Strategy.Spotify do
                           default_scope: "user-read-email"
 
   alias Ueberauth.Auth.Info
+  alias Ueberauth.Auth.Info
+  alias Ueberauth.Auth.Credentials
 
   @doc """
   Handles initial request for Spotify authentication.
@@ -25,12 +27,14 @@ defmodule Ueberauth.Strategy.Spotify do
   """
   def handle_callback!(%Plug.Conn{ params: %{ "code" => code } } = conn) do
     opts = [redirect_uri: callback_url(conn)]
-    token = Ueberauth.Strategy.Spotify.OAuth.get_token!([code: code], opts)
 
-    if token.access_token == nil do
-      set_errors!(conn, [error(token.other_params["error"], token.other_params["error_description"])])
+    client = Ueberauth.Strategy.Spotify.OAuth.get_token!([code: code], opts)
+    conn = put_private(conn, :spotify_token, client.token)
+
+    if client.token.access_token == nil do
+      set_errors!(conn, [error(client.other_params["error"], client.other_params["error_description"])])
     else
-      fetch_user(conn, token)
+      fetch_user(conn, client)
     end
   end
 
@@ -42,7 +46,7 @@ defmodule Ueberauth.Strategy.Spotify do
   end
 
   defp fetch_user(conn, token) do
-    case OAuth2.AccessToken.get(token, "/me") do
+    case OAuth2.Client.get(token, "/me") do
       { :ok, %OAuth2.Response{status_code: 404, body: _body}} ->
         set_errors!(conn, [error("OAuth2", "404 - not found")])
       { :ok, %OAuth2.Response{status_code: 401, body: _body}} ->
@@ -62,6 +66,23 @@ defmodule Ueberauth.Strategy.Spotify do
       nickname: user["id"],
       email: user["email"],
       image: hd(user["images"])["url"]
+    }
+  end
+
+  @doc """
+  Includes the credentials from the spotify response.
+  """
+  def credentials(conn) do
+    token = conn.private.spotify_token
+    scopes = token.other_params["scope"] || ""
+    scopes = String.split(scopes, ",")
+
+    %Credentials{
+      expires: !!token.expires_at,
+      expires_at: token.expires_at,
+      scopes: scopes,
+      token: token.access_token,
+      refresh_token: token.refresh_token
     }
   end
 
