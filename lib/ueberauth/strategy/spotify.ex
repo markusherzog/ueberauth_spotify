@@ -57,6 +57,9 @@ defmodule Ueberauth.Strategy.Spotify do
 
   defp fetch_user(conn, token) do
     case OAuth2.Client.get(token, "/me") do
+      {:ok, %OAuth2.Response{status_code: 400, body: _body}} ->
+        set_errors!(conn, [error("OAuth2", "400 - bad request")])
+
       {:ok, %OAuth2.Response{status_code: 404, body: _body}} ->
         set_errors!(conn, [error("OAuth2", "404 - not found")])
 

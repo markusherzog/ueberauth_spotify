@@ -29,14 +29,20 @@ defmodule Ueberauth.Strategy.Spotify.OAuth do
   These options are only useful for usage outside the normal callback phase of Ueberauth.
   """
   def client(opts \\ []) do
-    config = Application.get_env(:ueberauth, Ueberauth.Strategy.Spotify.OAuth)
+    {serializers, config} =
+      Application.get_env(:ueberauth, Ueberauth.Strategy.Spotify.OAuth, [])
+      |> Keyword.pop(:serializers, [])
 
     opts =
       @defaults
       |> Keyword.merge(config)
       |> Keyword.merge(opts)
 
-    OAuth2.Client.new(opts)
+    client = OAuth2.Client.new(opts)
+
+    Enum.reduce(serializers, client, fn {mimetype, module}, client ->
+      OAuth2.Client.put_serializer(client, mimetype, module)
+    end)
   end
 
   @doc """

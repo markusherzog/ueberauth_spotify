@@ -26,8 +26,7 @@ defmodule UeberauthSpotify.Mixfile do
     [
       {:ueberauth, "~> 0.2"},
       {:oauth2, "~> 1.0"},
-      {:ex_doc, "~> 0.1", only: :dev},
-      {:earmark, ">= 0.0.0", only: :dev}
+      {:ex_doc, "~> 0.19", only: :dev}
     ]
   end
 
