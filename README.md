@@ -10,7 +10,7 @@
 
    ```elixir
    def deps do
-     [{:ueberauth_spotify, github: "markusherzog/ueberauth_spotify"}]
+     [{:ueberauth_spotify, "0.2.0"}]
    end
    ```
 
