@@ -30,15 +30,18 @@ defmodule Ueberauth.Strategy.Spotify.OAuth do
   """
   def client(opts \\ []) do
     {serializers, config} =
-      Application.get_env(:ueberauth, Ueberauth.Strategy.Spotify.OAuth, [])
-      |> Keyword.pop(:serializers, [])
+      :ueberauth
+      |> Application.fetch_env!(Ueberauth.Strategy.Spotify.OAuth)
+      |> check_config_key_exists(:client_id)
+      |> check_config_key_exists(:client_secret)
+      |> Keyword.pop(:serializers, [{"application/json", Ueberauth.json_library()}])
 
-    opts =
+    client_opts =
       @defaults
       |> Keyword.merge(config)
       |> Keyword.merge(opts)
 
-    client = OAuth2.Client.new(opts)
+    client = OAuth2.Client.new(client_opts)
 
     Enum.reduce(serializers, client, fn {mimetype, module}, client ->
       OAuth2.Client.put_serializer(client, mimetype, module)
@@ -54,11 +57,20 @@ defmodule Ueberauth.Strategy.Spotify.OAuth do
     |> OAuth2.Client.authorize_url!(params)
   end
 
-  @spec get_token!(term, keyword) :: OAuth2.AccessToken.t()
-  def get_token!(params, opts) do
-    opts
+  def get(token, url, headers \\ [], opts \\ []) do
+    [token: token]
     |> client()
-    |> OAuth2.Client.get_token!(params)
+    |> OAuth2.Client.get(url, headers, opts)
+  end
+
+  @spec get_token!(term, keyword) :: OAuth2.AccessToken.t()
+  def get_token!(params \\ [], options \\ []) do
+    client =
+      options
+      |> client()
+      |> OAuth2.Client.get_token!(params)
+
+    client.token
   end
 
   # Strategy Callbacks
@@ -67,14 +79,14 @@ defmodule Ueberauth.Strategy.Spotify.OAuth do
     OAuth2.Strategy.AuthCode.authorize_url(client, params)
   end
 
-  def get_token(client, params, _headers) do
+  def get_token(client, params, headers) do
     client
     |> put_header("Accept", "application/json")
     |> put_header(
       "Authorization",
       "Basic " <> encode_credentials(client.client_id, client.client_secret)
     )
-    |> OAuth2.Strategy.AuthCode.get_token(params, [])
+    |> OAuth2.Strategy.AuthCode.get_token(params, headers)
   end
 
   # Helper functions
@@ -82,4 +94,16 @@ defmodule Ueberauth.Strategy.Spotify.OAuth do
   @spec encode_credentials(String.t(), String.t()) :: String.t()
   def encode_credentials(client_id, client_secret),
     do: (client_id <> ":" <> client_secret) |> Base.encode64()
+
+  defp check_config_key_exists(config, key) when is_list(config) do
+    unless Keyword.has_key?(config, key) do
+      raise "#{inspect(key)} missing from config :ueberauth, Ueberauth.Strategy.Spotify"
+    end
+
+    config
+  end
+
+  defp check_config_key_exists(_, _) do
+    raise "Config :ueberauth, Ueberauth.Strategy.Spotify is not a keyword list, as expected"
+  end
 end
