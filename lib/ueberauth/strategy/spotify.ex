@@ -8,11 +8,17 @@ defmodule Ueberauth.Strategy.Spotify do
     default_scope: "user-read-email"
 
   alias Ueberauth.Auth.Info
-  alias Ueberauth.Auth.Info
   alias Ueberauth.Auth.Credentials
+  alias Ueberauth.Auth.Extra
 
   @doc """
-  Handles initial request for Spotify authentication.
+  Handles initial redirect to the Spotify authentication page.
+
+  To customize the scope (permissions) that are requested by Spotify include them as part of your url:
+
+      "/auth/spotify?scope=user-read-email,user-read-privatet"
+
+  You can also include a `state` param that Spotify will return to you.
   """
   def handle_request!(conn) do
     scopes = conn.params["scope"] || option(conn, :default_scope)
@@ -28,23 +34,23 @@ defmodule Ueberauth.Strategy.Spotify do
   end
 
   @doc """
-  Handles the callback from Spotify.
+  Handles the callback from Spotify. When there is a failure from Spotify the failure is included in the
+  `ueberauth_failure` struct. Otherwise the information returned from Spotify is returned in the `Ueberauth.Auth` struct.
   """
   def handle_callback!(%Plug.Conn{params: %{"code" => code}} = conn) do
-    opts = [redirect_uri: callback_url(conn)]
+    options = [redirect_uri: callback_url(conn)]
 
-    client = Ueberauth.Strategy.Spotify.OAuth.get_token!([code: code], opts)
-    conn = put_private(conn, :spotify_token, client.token)
+    token = Ueberauth.Strategy.Spotify.OAuth.get_token!([code: code], options)
 
-    if client.token.access_token == nil do
+    if token.access_token == nil do
       set_errors!(conn, [
         error(
-          client.other_params["error"],
-          client.other_params["error_description"]
+          token.other_params["error"],
+          token.other_params["error_description"]
         )
       ])
     else
-      fetch_user(conn, client)
+      fetch_user(conn, token)
     end
   end
 
@@ -56,7 +62,9 @@ defmodule Ueberauth.Strategy.Spotify do
   end
 
   defp fetch_user(conn, token) do
-    case OAuth2.Client.get(token, "/me") do
+    conn = put_private(conn, :spotify_token, token)
+
+    case Ueberauth.Strategy.Spotify.OAuth.get(token, "/me") do
       {:ok, %OAuth2.Response{status_code: 400, body: _body}} ->
         set_errors!(conn, [error("OAuth2", "400 - bad request")])
 
@@ -75,7 +83,9 @@ defmodule Ueberauth.Strategy.Spotify do
     end
   end
 
-  @doc false
+  @doc """
+  Fetches the fields to populate the info section of the `Ueberauth.Auth` struct.
+  """
   def info(conn) do
     user = conn.private.spotify_user
 
@@ -83,12 +93,23 @@ defmodule Ueberauth.Strategy.Spotify do
       name: user["display_name"],
       nickname: user["id"],
       email: user["email"],
-      image: hd(user["images"])["url"]
+      image: hd(user["images"])["url"],
+      urls: %{external: user["external_urls"]["spotify"], spotify: user["uri"]},
+      location: user["country"]
+    }
+  end
+
+  def extra(conn) do
+    %Extra{
+      raw_info: %{
+        token: conn.private.spotify_token,
+        user: conn.private.spotify_user
+      }
     }
   end
 
   @doc """
-  Includes the credentials from the spotify response.
+  Includes the credentials from the Spotify response.
   """
   def credentials(conn) do
     token = conn.private.spotify_token
@@ -96,11 +117,12 @@ defmodule Ueberauth.Strategy.Spotify do
     scopes = String.split(scopes, ",")
 
     %Credentials{
-      expires: !!token.expires_at,
-      expires_at: token.expires_at,
-      scopes: scopes,
       token: token.access_token,
-      refresh_token: token.refresh_token
+      refresh_token: token.refresh_token,
+      expires_at: token.expires_at,
+      token_type: token.token_type,
+      expires: !!token.expires_at,
+      scopes: scopes
     }
   end
 

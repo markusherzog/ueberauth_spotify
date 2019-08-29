@@ -4,20 +4,14 @@
 
 ## Installation
 
-1. Setup your application at the [Spotify Developer Console]().
+1. Setup your application at the [Spotify Developer Console](https://developer.spotify.com/dashboard).
 
 1. Add `:ueberauth_spotify` to your list of dependencies in `mix.exs`:
 
    ```elixir
    def deps do
-     [{:ueberauth_spotify, "0.1.0"}]
+     [{:ueberauth_spotify, github: "markusherzog/ueberauth_spotify"}]
    end
-   ```
-
-1. Fetch the dependencies
-
-   ```elixir
-   mix deps.get
    ```
 
 1. Add the strategy to your applications in `mix.exs`::
@@ -26,6 +20,12 @@
    def application do
      [applications: [:ueberauth_spotify]]
    end
+   ```
+
+1. Fetch the dependencies
+
+   ```elixir
+   mix deps.get
    ```
 
 1. Add Spotify to your Überauth configuration in `config/config.exs`::
@@ -44,7 +44,6 @@
    config :ueberauth, Ueberauth.Strategy.Spotify.OAuth,
      client_id: System.get_env("SPOTIFY_CLIENT_ID"),
      client_secret: System.get_env("SPOTIFY_CLIENT_SECRET")
-     serializer: [{"application/json", Jason}]
    ```
 
 1. Include the Überauth plug in your controller:
