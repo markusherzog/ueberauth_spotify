@@ -93,7 +93,7 @@ defmodule Ueberauth.Strategy.Spotify do
       name: user["display_name"],
       nickname: user["id"],
       email: user["email"],
-      image: hd(user["images"])["url"],
+      image: List.first(user["images"])["url"],
       urls: %{external: user["external_urls"]["spotify"], spotify: user["uri"]},
       location: user["country"]
     }
