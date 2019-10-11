@@ -10,7 +10,7 @@
 
    ```elixir
    def deps do
-     [{:ueberauth_spotify, "0.2.0"}]
+     [{:ueberauth_spotify, "0.2.1"}]
    end
    ```
 
