@@ -5,7 +5,8 @@ defmodule Ueberauth.Strategy.Spotify do
 
   use Ueberauth.Strategy,
     uid_field: :uid,
-    default_scope: "user-read-email"
+    default_scope: "user-read-email",
+    ignores_csrf_attack: false
 
   alias Ueberauth.Auth.Info
   alias Ueberauth.Auth.Credentials
@@ -22,10 +23,11 @@ defmodule Ueberauth.Strategy.Spotify do
   """
   def handle_request!(conn) do
     scopes = conn.params["scope"] || option(conn, :default_scope)
+    state = Map.get(conn.params, "state", conn.private[:ueberauth_state_param])
 
     opts = [
       scope: scopes,
-      state: Map.get(conn.params, "state", nil),
+      state: state,
       show_dialog: Map.get(conn.params, "show_dialog", nil),
       redirect_uri: callback_url(conn)
     ]
