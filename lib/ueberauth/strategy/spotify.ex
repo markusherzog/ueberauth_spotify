@@ -10,6 +10,7 @@ defmodule Ueberauth.Strategy.Spotify do
   alias Ueberauth.Auth.Info
   alias Ueberauth.Auth.Credentials
   alias Ueberauth.Auth.Extra
+  alias Ueberauth.Strategy.Helpers
 
   @doc """
   Handles initial redirect to the Spotify authentication page.
@@ -25,10 +26,10 @@ defmodule Ueberauth.Strategy.Spotify do
 
     opts = [
       scope: scopes,
-      state: Map.get(conn.params, "state", nil),
       show_dialog: Map.get(conn.params, "show_dialog", nil),
       redirect_uri: callback_url(conn)
     ]
+    |> Helpers.with_state_param(conn)
 
     redirect!(conn, Ueberauth.Strategy.Spotify.OAuth.authorize_url!(opts))
   end
